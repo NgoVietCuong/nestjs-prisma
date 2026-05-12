@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "commonjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+generator zod {
+  provider         = "prisma-zod-generator"
+  output           = "../src/generated/zod"
+  useMultipleFiles = true
+  createInputTypes = true
+}

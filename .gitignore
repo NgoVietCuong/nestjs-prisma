@@ -59,3 +59,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /docker
 pnpm-workspace.yaml
 tsconfig.build.tsbuildinfo
+/src/generated/prisma
