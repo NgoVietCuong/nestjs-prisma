@@ -4,7 +4,8 @@
     "resolvePackageJsonExports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "declaration": true,
+    "declaration": false,
+    "declarationMap": false,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -20,16 +21,11 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "types": [
-      "node"
-    ],
+    "types": ["node", "multer", "jest"],
     "paths": {
-      "config": [
-        "./config/index"
-      ],
-      "src/*": [
-        "./src/*"
-      ]
+      "config": ["./config/index"],
+      "src/*": ["./src/*"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

@@ -11,7 +11,7 @@ const wrapOptional = <T extends z.ZodTypeAny>(schema: T, required: boolean): any
 export const Field = {
   /** String field */
   string: (opts: { required?: boolean; default?: string; min?: number; max?: number } = {}) => {
-    let schema = z.string({ required_error: 'This field is required' });
+    let schema = z.string({ error: 'This field is required' });
 
     if (opts.min !== undefined) schema = schema.min(opts.min);
     if (opts.max !== undefined) schema = schema.max(opts.max);
@@ -22,7 +22,7 @@ export const Field = {
 
   /** Number field */
   number: (opts: { required?: boolean; default?: number; min?: number; max?: number } = {}) => {
-    let schema = z.number({ required_error: 'This field is required' }).int();
+    let schema = z.number({ error: 'This field is required' }).int();
 
     if (opts.min !== undefined) schema = schema.min(opts.min);
     if (opts.max !== undefined) schema = schema.max(opts.max);
@@ -42,7 +42,7 @@ export const Field = {
 
   /** Date */
   date: (opts: { required?: boolean } = {}) =>
-    wrapOptional(z.date({ required_error: 'Invalid date format' }), !!opts.required),
+    wrapOptional(z.date({ error: 'Invalid date format' }), !!opts.required),
 
   /** UUID */
   uuid: (opts: { required?: boolean } = {}) =>

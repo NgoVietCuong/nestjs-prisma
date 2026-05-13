@@ -1,0 +1,49 @@
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { HttpAdapterHost } from '@nestjs/core';
+import logger from 'prisma-zod-generator/lib/utils/logger';
+import { ERROR_RESPONSE } from 'src/shared/constants';
+import { HttpErrorResponseDto } from 'src/shared/dto';
+
+@Catch()
+export class AllExceptionFilter implements ExceptionFilter {
+  constructor(
+    private readonly httpAdapterHost: HttpAdapterHost,
+    private readonly configService: ConfigService,
+  ) {}
+
+  catch(exception: unknown, host: ArgumentsHost): void {
+    // In certain situations `httpAdapter` might not be available in the
+    // constructor method, thus resolve it here.
+    const { httpAdapter } = this.httpAdapterHost;
+
+    const ctx = host.switchToHttp();
+    const request = ctx.getRequest();
+    logger.error(exception);
+
+    const isHttpException = exception instanceof HttpException;
+    const httpStatus = isHttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const responseBody: Partial<HttpErrorResponseDto> = {
+      statusCode: httpStatus,
+      timestamp: new Date().toISOString(),
+      path: request.url,
+    };
+
+    if (isHttpException) {
+      const exceptionResponse = exception.getResponse() as HttpErrorResponseDto;
+      Object.assign(responseBody, exceptionResponse);
+    } else {
+      Object.assign(responseBody, { ...ERROR_RESPONSE.INTERNAL_SERVER_ERROR, details: exception });
+    }
+
+    console.log('responseBody', responseBody);
+
+    // Remove error details in production
+    const isProductionEnv = this.configService.get<string>('app.isProductionEnv');
+    if (isProductionEnv) {
+      delete responseBody.details;
+    }
+
+    httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
+  }
+}
