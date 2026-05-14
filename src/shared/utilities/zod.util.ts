@@ -3,25 +3,32 @@ import { z } from 'zod';
 /**
  * Helper to make a schema optional or required based on flag
  */
-const wrapOptional = <T extends z.ZodTypeAny>(schema: T, required: boolean): any => {
-  return required ? schema : schema.optional();
-};
+function wrapOptional<T extends z.ZodTypeAny, R extends boolean>(
+  schema: T,
+  required: R,
+): R extends true ? T : z.ZodOptional<T> {
+  return (required ? schema : schema.optional()) as any;
+}
 
 // ==================== Main Field Builder ====================
 export const Field = {
   /** String field */
-  string: (opts: { required?: boolean; default?: string; min?: number; max?: number } = {}) => {
+  string: <R extends boolean = false>(
+    opts: { required?: R; default?: string; min?: number; max?: number } = {},
+  ) => {
     let schema = z.string({ error: 'This field is required' });
 
     if (opts.min !== undefined) schema = schema.min(opts.min);
     if (opts.max !== undefined) schema = schema.max(opts.max);
 
     const finalSchema = opts.default !== undefined ? schema.default(opts.default) : schema;
-    return wrapOptional(finalSchema, !!opts.required);
+    return wrapOptional(finalSchema, (opts.required ?? false) as R);
   },
 
   /** Number field */
-  number: (opts: { required?: boolean; default?: number; min?: number; max?: number } = {}) => {
+  number: <R extends boolean = false>(
+    opts: { required?: R; default?: number; min?: number; max?: number } = {},
+  ) => {
     let schema = z.number({ error: 'This field is required' }).int();
 
     if (opts.min !== undefined) schema = schema.min(opts.min);
@@ -29,60 +36,67 @@ export const Field = {
 
     const finalSchema = opts.default !== undefined ? schema.default(opts.default) : schema;
 
-    return wrapOptional(finalSchema, !!opts.required);
+    return wrapOptional(finalSchema, (opts.required ?? false) as R);
   },
 
   /** Boolean */
-  boolean: (opts: { required?: boolean; default?: boolean } = {}) => {
+  boolean: <R extends boolean = false>(opts: { required?: R; default?: boolean } = {}) => {
     const schema = z.boolean();
     const finalSchema = opts.default !== undefined ? schema.default(opts.default) : schema;
 
-    return wrapOptional(finalSchema, !!opts.required);
+    return wrapOptional(finalSchema, (opts.required ?? false) as R);
   },
 
   /** Date */
-  date: (opts: { required?: boolean } = {}) =>
-    wrapOptional(z.date({ error: 'Invalid date format' }), !!opts.required),
+  date: <R extends boolean = false>(opts: { required?: R } = {}) =>
+    wrapOptional(z.date({ error: 'Invalid date format' }), (opts.required ?? false) as R),
 
   /** UUID */
-  uuid: (opts: { required?: boolean } = {}) =>
-    wrapOptional(z.string().uuid('Invalid UUID format'), !!opts.required),
+  uuid: <R extends boolean = false>(opts: { required?: R } = {}) =>
+    wrapOptional(z.uuid('Invalid UUID format'), (opts.required ?? false) as R),
 
   /** Email */
-  email: (opts: { required?: boolean } = {}) =>
-    wrapOptional(z.string().email('Invalid email address'), !!opts.required),
+  email: <R extends boolean = false>(opts: { required?: R } = {}) =>
+    wrapOptional(z.email('Invalid email address'), (opts.required ?? false) as R),
 
   /** Enum */
-  enum: <T extends readonly [string, ...string[]]>(
+  enum: <T extends readonly [string, ...string[]], R extends boolean = false>(
     values: T,
-    opts: { required?: boolean; default?: T[number] } = {},
+    opts: { required?: R; default?: T[number] } = {},
   ) => {
     const schema = z.enum(values);
     const finalSchema = opts.default !== undefined ? schema.default(opts.default) : schema;
 
-    return wrapOptional(finalSchema, !!opts.required);
+    return wrapOptional(finalSchema, (opts.required ?? false) as R);
   },
 
   /** Array */
-  array: <T extends z.ZodTypeAny>(item: T, opts: { required?: boolean; min?: number } = {}) => {
+  array: <T extends z.ZodTypeAny, R extends boolean = false>(
+    item: T,
+    opts: { required?: R; min?: number } = {},
+  ) => {
     const schema = z.array(item).min(opts.min ?? 0);
-    return wrapOptional(schema, !!opts.required);
+    return wrapOptional(schema, (opts.required ?? false) as R);
   },
 
   /** Nested DTO (single object) */
-  dto: <T extends z.ZodRawShape>(shape: T, opts: { required?: boolean } = {}) => {
+  dto: <T extends z.ZodRawShape, R extends boolean = false>(
+    shape: T,
+    opts: { required?: R } = {},
+  ) => {
     const schema = z.object(shape).strict();
-    return wrapOptional(schema, !!opts.required);
+    return wrapOptional(schema, (opts.required ?? false) as R);
   },
 
   /** Nested DTO Array */
-  dtoArray: <T extends z.ZodRawShape>(
+  dtoArray: <T extends z.ZodRawShape, R extends boolean = false>(
     shape: T,
-    opts: { required?: boolean; min?: number } = {},
+    opts: { required?: R; min?: number } = {},
   ) => {
     const schema = z.array(z.object(shape).strict()).min(opts.min ?? 0);
-    return wrapOptional(schema, !!opts.required);
+    return wrapOptional(schema, (opts.required ?? false) as R);
   },
+
   /** File upload */
   file: () => z.any().optional(),
 };

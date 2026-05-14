@@ -58,10 +58,9 @@ export class GenerateAdminCommand extends CommandRunner {
     required: true,
   })
   parseEmail(val: string): string {
-    const result = z.string().email('Invalid email format').safeParse(val);
+    const result = z.email('Invalid email format').safeParse(val);
 
     if (!result.success) {
-      console.log('test', result.error);
       throw new Error(result.error.issues[0].message);
     }
     return val;
